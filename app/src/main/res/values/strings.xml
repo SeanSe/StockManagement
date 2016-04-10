@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">StockManagement</string>
+    <string name="action_settings">Settings</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+
+    <string name="scan">Scan</string>
+    <string name="filter_hint">
+        Type here to filter&#8230;
+    </string>
+
+    <string name="action_search">Search</string>
+</resources>
