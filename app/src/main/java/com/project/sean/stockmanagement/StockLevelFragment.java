@@ -3,7 +3,12 @@ package com.project.sean.stockmanagement;
 import android.content.Context;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.SearchView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -42,6 +47,13 @@ public class StockLevelFragment extends Fragment {
     public StockLevelFragment(){
     }
 
+    /**
+     *
+     * @param inflater
+     * @param container
+     * @param savedInstanceState
+     * @return
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -50,49 +62,65 @@ public class StockLevelFragment extends Fragment {
 
 
         TextView textView = (TextView) rootView.findViewById(R.id.stock_level_lable);
-        //textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+
+        //Tells the parent activity that this fragment has its own menu
+        setHasOptionsMenu(true);
         return rootView;
     }
 
-    public class StockLevelAdapter extends ArrayAdapter<StockInfo> {
-
-        private ArrayList<StockInfo> originalList;
-        private ArrayList<StockInfo> stockList;
-        private StockFilter filter;
-
-        public StockLevelAdapter(Context context, int resource, ArrayList<StockInfo> stockList) {
-            super(context, resource, stockList);
-            this.stockList = new ArrayList<StockInfo>();
-            this.stockList.addAll(stockList);
-
-            this.originalList = new ArrayList<StockInfo>();
-            this.stockList.addAll(stockList);
-        }
-
-        @Override
-        public Filter getFilter() {
-            if (filter == null) {
-                filter = new StockFilter();
-            }
-            return filter;
-        }
-
-        private class ViewHolder {
-            TextView tvstockId;
-        }
-
+    /**
+     * Create the unique menu bar for StockLevelFragment.
+     * @param menu
+     * @param inflater
+     */
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        inflater.inflate(R.menu.menu_stock_levels, menu);
+        MenuItem item = menu.findItem(R.id.action_search);
+        SearchView searchView = (SearchView) MenuItemCompat.getActionView(item);
     }
 
-    public class StockFilter extends Filter {
+//    public class StockLevelAdapter extends ArrayAdapter<StockInfo> {
+//
+//        private ArrayList<StockInfo> originalList;
+//        private ArrayList<StockInfo> stockList;
+//        private StockFilter filter;
+//
+//        public StockLevelAdapter(Context context, int resource, ArrayList<StockInfo> stockList) {
+//            super(context, resource, stockList);
+//            this.stockList = new ArrayList<StockInfo>();
+//            this.stockList.addAll(stockList);
+//
+//            this.originalList = new ArrayList<StockInfo>();
+//            this.stockList.addAll(stockList);
+//        }
+//
+//        @Override
+//        public Filter getFilter() {
+//            if (filter == null) {
+//                filter = new StockFilter();
+//            }
+//            return filter;
+//        }
+//
+//        private class ViewHolder {
+//            TextView tvstockId;
+//        }
+//
+//    }
+//
+//    public class StockFilter extends Filter {
+//
+//        @Override
+//        protected FilterResults performFiltering(CharSequence constraint) {
+//            return null;
+//        }
+//
+//        @Override
+//        protected void publishResults(CharSequence constraint, FilterResults results) {
+//
+//        }
+//    }
 
-        @Override
-        protected FilterResults performFiltering(CharSequence constraint) {
-            return null;
-        }
-
-        @Override
-        protected void publishResults(CharSequence constraint, FilterResults results) {
-
-        }
-    }
 }

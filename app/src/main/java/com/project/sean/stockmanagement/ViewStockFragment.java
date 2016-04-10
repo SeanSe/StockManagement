@@ -97,10 +97,17 @@ public class ViewStockFragment extends Fragment {
         });
         //TextView textView = (TextView) rootView.findViewById(R.id.view_stock_label);
         //textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+
+        //Tells the parent activity that this fragment has its own menu
         setHasOptionsMenu(true);
         return rootView;
     }
 
+    /**
+     * Create the unique menu bar for ViewStockFragment.
+     * @param menu
+     * @param inflater
+     */
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
