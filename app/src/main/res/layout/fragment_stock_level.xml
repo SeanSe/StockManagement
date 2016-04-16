@@ -8,9 +8,10 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context=".StockManagementActivity">
 
-    <TextView android:id="@+id/stock_level_lable"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Stock Level Fragment"/>
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rvStockLevel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#ECEFF1"/>
 
 </RelativeLayout>
