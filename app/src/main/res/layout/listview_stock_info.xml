@@ -3,7 +3,9 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="6dip" >
+    android:padding="6dip"
+    android:background="#FFFFFF"
+    android:layout_marginBottom="1dp">
 
     <TextView
         android:id="@+id/textView1"

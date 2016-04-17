@@ -6,6 +6,8 @@ import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -26,25 +28,27 @@ import android.widget.TextView;
 import com.project.sean.stockmanagement.Database.AndroidPOSDBHelper;
 import com.project.sean.stockmanagement.Database.StockInfo;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by Sean on 01/04/2016.
  */
-public class ViewStockFragment extends Fragment {
+public class ViewStockFragment extends Fragment implements SearchView.OnQueryTextListener {
 
-    private AndroidPOSDBHelper dbHelper;
-    private StockViewAdapter dataAdapter;
+    //ListView listView;
 
-
-    ListView listView;
     /**
      * The fragment argument representing the section number for this
      * fragment.
      */
     private static final String ARG_SECTION_NUMBER = "section_number";
 
+    private RecyclerView mRecyclerView;
+    private AndroidPOSDBHelper dbHelper;
+    private StockViewAdapter mAdapter;
+    private List<StockInfo> stockInfoList;
     /**
      * Returns a new instance of this fragment for the given section
      * number.
@@ -60,47 +64,37 @@ public class ViewStockFragment extends Fragment {
     public ViewStockFragment(){
     }
 
+    /**
+     *
+     * @param inflater
+     * @param container
+     * @param savedInstanceState
+     * @return
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_view_stock, container, false);
 
+        mRecyclerView = (RecyclerView) rootView.findViewById(R.id.rvStockView);
+
+        return rootView;
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        setHasOptionsMenu(true);
+
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+
         dbHelper = AndroidPOSDBHelper.getInstance(getActivity());
 
-        ArrayList<StockInfo> stockInfoList = new ArrayList<StockInfo>();
+        stockInfoList = new ArrayList<StockInfo>();
         stockInfoList.addAll(dbHelper.getAllStockInfo());
 
-        dataAdapter = new StockViewAdapter(getActivity(), R.layout.listview_stock_info, stockInfoList);
-
-        listView = (ListView) rootView.findViewById(R.id.listView1);
-
-        listView.setAdapter(dataAdapter);
-
-        EditText myFilter = (EditText) rootView.findViewById(R.id.myFilter);
-
-        myFilter.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                Log.d("onTextChanged", "" + s);
-                dataAdapter.getFilter().filter(s.toString());
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
-        //TextView textView = (TextView) rootView.findViewById(R.id.view_stock_label);
-        //textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
-
-        //Tells the parent activity that this fragment has its own menu
-        setHasOptionsMenu(true);
-        return rootView;
+        mAdapter = new StockViewAdapter(getActivity(), stockInfoList);
+        mRecyclerView.setAdapter(mAdapter);
     }
 
     /**
@@ -114,147 +108,224 @@ public class ViewStockFragment extends Fragment {
         inflater.inflate(R.menu.menu_view_stock, menu);
         MenuItem item = menu.findItem(R.id.action_search);
         SearchView searchView = (SearchView) MenuItemCompat.getActionView(item);
+        searchView.setOnQueryTextListener(this);
     }
 
-    //    @Override
-//    public void onResume() {
-//        super.onResume();
-//        Log.d("onResume", "The onResume method has been called.");
-//        ArrayList<StockInfo> stockInfoList = new ArrayList<StockInfo>();
-//        stockInfoList.addAll(dbHelper.getAllStockInfo());
-//        dataAdapter = new StockViewAdapter(getActivity(), R.layout.listview_stock_info, stockInfoList);
-//        listView.setAdapter(dataAdapter);
-//    }
-
-    //    public void displayListView() {
-//
-//        Cursor cursor = dbHelper.getallStockData();
-//
-//    }
+    @Override
+    public boolean onQueryTextChange(String query) {
+        final List<StockInfo> filteredStockList = filter(stockInfoList, query);
+        mAdapter.animateTo(filteredStockList);
+        mRecyclerView.scrollToPosition(0);
+        return true;
+    }
 
     /**
-     * Refresh the ListView, to be implemented in-case update on swipe or select tab
+     * On query submit do nothing.
+     * @param query
+     * @return
+     */
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return false;
+    }
+
+    /**
+     * Produce a filtered list using the list of stock information and the query
+     * entered into the search view.
+     * @param stockInfos
+     * @param query
+     * @return
+     */
+    public List<StockInfo> filter(List<StockInfo> stockInfos, String query) {
+        query = query.toLowerCase();
+
+        final List<StockInfo> filteredModelList = new ArrayList<>();
+        for (StockInfo stockInfo : stockInfos) {
+            final String text = stockInfo.getStockName().toLowerCase();
+            if (text.contains(query)) {
+                filteredModelList.add(stockInfo);
+            }
+        }
+        return filteredModelList;
+    }
+
+    /**
+     * Creates the view used to populate each row of the RecyclerView.
+     */
+    public class StockViewHolder extends RecyclerView.ViewHolder implements  View.OnClickListener {
+        //Add the variables here
+        private final TextView tvStockID;
+        private final TextView tvStockName;
+        private final TextView tvCategory;
+        private final TextView tvSalePrice;
+        private final TextView tvCostPrice;
+
+        public StockViewHolder(View itemView) {
+            super(itemView);
+            itemView.setOnClickListener(this);
+            //Add the UI elements here
+            tvStockID = (TextView) itemView.findViewById(R.id.tvStockID);
+            tvStockName = (TextView) itemView.findViewById(R.id.tvStockName);
+            tvCategory = (TextView) itemView.findViewById(R.id.tvCategory);
+            tvSalePrice = (TextView) itemView.findViewById(R.id.tvSalePrice);
+            tvCostPrice = (TextView) itemView.findViewById(R.id.tvCostPrice);
+        }
+
+        public void bind(StockInfo model) {
+
+
+            //Bind to the UI elements here
+            tvStockID.setText(model.getStockId());
+            tvStockName.setText(model.getStockName());
+            tvCategory.setText(model.getCategory());
+            tvSalePrice.setText("" + model.getSalePrice());
+            tvCostPrice.setText("" + model.getCostPrice());
+        }
+
+        @Override
+        public void onClick(View v) {
+            Log.d("Toast...", tvStockID.getText().toString() + tvStockName.getText().toString());
+        }
+    }
+
+    /**
+     * StockLevelAdapter inner class to create the RecyclerView
+     */
+    public class StockViewAdapter extends RecyclerView.Adapter<StockViewHolder> {
+
+        private final LayoutInflater mInflater;
+        private final List<StockInfo> stockInfoList;
+
+        public StockViewAdapter(Context context, List<StockInfo> models) {
+            mInflater = LayoutInflater.from(context);
+            stockInfoList = new ArrayList<>(models);
+        }
+
+        @Override
+        public StockViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            final View itemView = mInflater.inflate(R.layout.listview_stock_info, parent, false);
+            return new StockViewHolder(itemView);
+        }
+
+        @Override
+        public void onBindViewHolder(StockViewHolder holder, int position) {
+            final StockInfo stockInfo = stockInfoList.get(position);
+            holder.bind(stockInfo);
+        }
+
+        /**
+         * Get the current size of the stockInfoList.
+         * @return
+         */
+        @Override
+        public int getItemCount() {
+            return stockInfoList.size();
+        }
+
+        public void animateTo(List<StockInfo> models) {
+            applyAndAnimateRemovals(models);
+            applyAndAnimateAdditions(models);
+            applyAndAnimateMovedItems(models);
+        }
+
+        /**
+         * Adjust the list when an item is removed.
+         * @param newModels
+         */
+        private void applyAndAnimateRemovals(List<StockInfo> newModels) {
+            for (int i = stockInfoList.size() - 1; i >= 0; i--) {
+                final StockInfo stockInfo = stockInfoList.get(i);
+                if (!newModels.contains(stockInfo)) {
+                    removeItem(i);
+                }
+            }
+        }
+
+        private void applyAndAnimateAdditions(List<StockInfo> newModels) {
+            for (int i = 0, count = newModels.size(); i < count; i++) {
+                final StockInfo stockInfo = newModels.get(i);
+                if (!stockInfoList.contains(stockInfo)) {
+                    addItem(i, stockInfo);
+                }
+            }
+        }
+
+        private void applyAndAnimateMovedItems(List<StockInfo> newModels) {
+            for (int toPosition = newModels.size() - 1; toPosition >= 0; toPosition--) {
+                final StockInfo stockInfo = newModels.get(toPosition);
+                final int fromPosition = stockInfoList.indexOf(stockInfo);
+                if (fromPosition >= 0 && fromPosition != toPosition) {
+                    moveItem(fromPosition, toPosition);
+                }
+            }
+        }
+
+        /**
+         * Remove an item from the stock info list and notify the adapter of the
+         * change.
+         * @param position
+         * @return
+         */
+        public StockInfo removeItem(int position) {
+            final StockInfo stockInfo = stockInfoList.remove(position);
+            notifyItemRemoved(position);
+            return stockInfo;
+        }
+
+        /**
+         * Add an item to the stock info list and notify the adapter of the
+         * change.
+         * @param position
+         * @param stockInfo
+         */
+        public void addItem(int position, StockInfo stockInfo) {
+            stockInfoList.add(position, stockInfo);
+            notifyItemInserted(position);
+        }
+
+        /**
+         * Move an item in the stock info list and notify the adapter of the
+         * change.
+         * @param fromPosition
+         * @param toPosition
+         */
+        public void moveItem(int fromPosition, int toPosition) {
+            final StockInfo stockInfo = stockInfoList.remove(fromPosition);
+            stockInfoList.add(toPosition, stockInfo);
+            notifyItemMoved(fromPosition, toPosition);
+        }
+    }
+
+    /**
+     * Refresh the RecycleView, to be implemented in-case update on swipe or select tab
      * cannot be completed.
      */
     public void refreshList() {
 
     }
 
-    public class StockViewAdapter extends ArrayAdapter<StockInfo> {
-
-        private ArrayList<StockInfo> originalList;
-        private ArrayList<StockInfo> stockList;
-        private StockFilter filter;
-
-        public StockViewAdapter(Context context, int resource, ArrayList<StockInfo> stockList) {
-            super(context, resource, stockList);
-            this.stockList = new ArrayList<StockInfo>();
-            this.stockList.addAll(stockList);
-
-            this.originalList = new ArrayList<StockInfo>();
-            this.stockList.addAll(stockList);
-        }
-
-        @Override
-        public Filter getFilter() {
-            if (filter == null) {
-                filter = new StockFilter();
-            }
-            return filter;
-        }
-
-        private class ViewHolder {
-            TextView tvStockID;
-            TextView tvStockName;
-            TextView tvCategory;
-            TextView tvSalePrice;
-            TextView tvCostPrice;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            ViewHolder holder = null;
-            //Print to log the position number
-            Log.v("ConvertView", String.valueOf(position));
-
-            if(convertView == null) {
-                LayoutInflater vi = (LayoutInflater)getActivity().getSystemService(
-                        Context.LAYOUT_INFLATER_SERVICE);
-                convertView = vi.inflate(R.layout.listview_stock_info, null);
-
-                holder = new ViewHolder();
-                holder.tvStockID = (TextView) convertView.findViewById(R.id.tvStockID);
-                holder.tvStockName = (TextView) convertView.findViewById(R.id.tvStockName);
-                holder.tvCategory = (TextView) convertView.findViewById(R.id.tvCategory);
-                holder.tvSalePrice = (TextView) convertView.findViewById(R.id.tvSalePrice);
-                holder.tvCostPrice = (TextView) convertView.findViewById(R.id.tvCostPrice);
-
-                convertView.setTag(holder);
-            } else {
-                holder =(ViewHolder) convertView.getTag();
-            }
-
-            StockInfo stockInfo = stockList.get(position);
-            holder.tvStockID.setText(stockInfo.getStockId());
-            holder.tvStockName.setText(stockInfo.getStockName());
-            holder.tvCategory.setText(stockInfo.getCategory());
-            holder.tvSalePrice.setText("" + stockInfo.getSalePrice());
-            holder.tvCostPrice.setText("" + stockInfo.getCostPrice());
-
-            return convertView;
-        }
-
-
-        public class StockFilter extends Filter {
-
-            @Override
-            protected FilterResults performFiltering(CharSequence constraint) {
-                constraint = constraint.toString().toLowerCase();
-                FilterResults result = new FilterResults();
-                if(constraint != null && constraint.toString().length() > 0) {
-                    ArrayList<StockInfo> filteredItems = new ArrayList<StockInfo>();
-                    for(int i = 0, l = originalList.size(); i < l; i++) {
-                        StockInfo stockInfo = originalList.get(i);
-                        if(stockInfo.toString().toLowerCase().contains(constraint)) {
-                            filteredItems.add(stockInfo);
-                        }
-                        result.count = filteredItems.size();
-                        result.values = filteredItems;
-                    }
-                } else {
-                    synchronized (this) {
-                        result.values = originalList;
-                        result.count = originalList.size();
-                    }
-                }
-                return result;
-            }
-
-            @SuppressWarnings("unchecked")
-            @Override
-            protected void publishResults(CharSequence constraint, FilterResults results) {
-                if (results.count == 0) {
-                    notifyDataSetInvalidated();
-                    Log.d("publishResults", "IF");
-                } else {
-                    stockList = (ArrayList<StockInfo>)results.values;
-                    notifyDataSetChanged();
-                    Log.d("publishResults", "ELSE");
-                }
-//                stockList = (ArrayList<StockInfo>)results.values;
-//                notifyDataSetChanged();
-//                clear();
-////                for(StockInfo stockInf : stockList) {
-////
-////                }
-//                for(int i = 0, l = stockList.size(); i < l; i++) {
-//                    add(stockList.get(i));
-//                    notifyDataSetInvalidated();;
-//                }
-            }
-        }
-
+    /**
+     * Converts the currency from pounds into pence.
+     * @param currency - pound
+     * @return currencyInt - pence
+     */
+    public int currencyIn(String currency) {
+        BigDecimal currencyBD = new BigDecimal(currency);
+        currencyBD = currencyBD.multiply(new BigDecimal("100"));
+        int currencyInt = currencyBD.intValueExact();
+        return currencyInt;
     }
 
+    /**
+     * Converts the currency from pence into pounds.
+     * @param currency
+     * @return
+     */
+    public BigDecimal currencyOut(int currency) {
+        BigDecimal currencyBD = new BigDecimal(currency);
+        currencyBD = currencyBD.divide(new BigDecimal("100"));
+
+        return currencyBD;
+    }
 
 }
