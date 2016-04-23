@@ -172,14 +172,19 @@ public class ViewStockFragment extends Fragment implements SearchView.OnQueryTex
         }
 
         public void bind(StockInfo model) {
-
+            //Sale Price
+            int salePrice = model.getSalePrice();
+            BigDecimal salePriceBD = currencyOut(salePrice);
+            //Cost Price
+            int costPrice = model.getCostPrice();
+            BigDecimal costPriceBD = currencyOut(costPrice);
 
             //Bind to the UI elements here
             tvStockID.setText(model.getStockId());
             tvStockName.setText(model.getStockName());
             tvCategory.setText(model.getCategory());
-            tvSalePrice.setText("" + model.getSalePrice());
-            tvCostPrice.setText("" + model.getCostPrice());
+            tvSalePrice.setText(salePriceBD.toString());
+            tvCostPrice.setText(costPriceBD.toString());
         }
 
         @Override
@@ -324,7 +329,7 @@ public class ViewStockFragment extends Fragment implements SearchView.OnQueryTex
     public BigDecimal currencyOut(int currency) {
         BigDecimal currencyBD = new BigDecimal(currency);
         currencyBD = currencyBD.divide(new BigDecimal("100"));
-
+        currencyBD = currencyBD.setScale(2);
         return currencyBD;
     }
 

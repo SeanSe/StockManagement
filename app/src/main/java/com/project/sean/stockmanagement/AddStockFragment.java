@@ -33,7 +33,6 @@ public class AddStockFragment extends Fragment implements View.OnClickListener {
     private Button scanBtn;
     //Button to add stock item to the DB
     private Button addBtn;
-    private Button viewBtn;
 
     //EditText for user entry
     private EditText editStockID;
@@ -78,7 +77,6 @@ public class AddStockFragment extends Fragment implements View.OnClickListener {
         //Initialise Button
         scanBtn = (Button)rootView.findViewById(R.id.scan_button);
         addBtn = (Button)rootView.findViewById(R.id.button_add);
-        viewBtn = (Button)rootView.findViewById(R.id.button_view);
 
         //Initialise EditText
         editStockID = (EditText)rootView.findViewById(R.id.editStockID);
@@ -91,7 +89,6 @@ public class AddStockFragment extends Fragment implements View.OnClickListener {
         //Set button action listener
         scanBtn.setOnClickListener(this);
         addBtn.setOnClickListener(this);
-        viewBtn.setOnClickListener(this);
 
 
         return rootView;
@@ -103,9 +100,6 @@ public class AddStockFragment extends Fragment implements View.OnClickListener {
         }
         if(v.getId()==R.id.button_add) {
             addData();
-        }
-        if(v.getId()==R.id.button_view) {
-            viewData();
         }
     }
 
@@ -213,33 +207,33 @@ public class AddStockFragment extends Fragment implements View.OnClickListener {
     }
 
 
-    public void viewData(){
-
-            Cursor result = dbHelper.getallStockData();
-            if (result.getCount() == 0) {
-                //Show error message
-                showMessage("Error", "No data found.");
-                return;
-            }
-
-            StringBuffer buffer = new StringBuffer();
-            //Moves cursor to the next result
-            //index 0 - ID
-            //index 1 - Name
-            //index 2 - Surname
-            //index 3 - Marks
-            while (result.moveToNext()) {
-                buffer.append("Stock ID: " + result.getString(0) + "\n");
-                buffer.append("Stock Name: " + result.getString(1) + "\n");
-                buffer.append("Sale Price: " + currencyOut(result.getInt(2)) + "\n");
-                buffer.append("Cost Price: " + currencyOut(result.getInt(3)) + "\n");
-                buffer.append("Stock Qty: " + result.getInt(4) + "\n");
-                buffer.append("Category: " + result.getString(5) + "\n");
-            }
-
-            //Show all data
-            showMessage("Product Information", buffer.toString());
-    }
+//    public void viewData(){
+//
+//            Cursor result = dbHelper.getallStockData();
+//            if (result.getCount() == 0) {
+//                //Show error message
+//                showMessage("Error", "No data found.");
+//                return;
+//            }
+//
+//            StringBuffer buffer = new StringBuffer();
+//            //Moves cursor to the next result
+//            //index 0 - ID
+//            //index 1 - Name
+//            //index 2 - Surname
+//            //index 3 - Marks
+//            while (result.moveToNext()) {
+//                buffer.append("Stock ID: " + result.getString(0) + "\n");
+//                buffer.append("Stock Name: " + result.getString(1) + "\n");
+//                buffer.append("Sale Price: " + currencyOut(result.getInt(2)) + "\n");
+//                buffer.append("Cost Price: " + currencyOut(result.getInt(3)) + "\n");
+//                buffer.append("Stock Qty: " + result.getInt(4) + "\n");
+//                buffer.append("Category: " + result.getString(5) + "\n");
+//            }
+//
+//            //Show all data
+//            showMessage("Product Information", buffer.toString());
+//    }
 
     /**
      * Used to create alert dialogue.
